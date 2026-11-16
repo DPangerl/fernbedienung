@@ -1,5 +1,7 @@
 {
-  "what": "A USB sidecar for the OP-1 Field: the OP-1 streams its four tape tracks to the FM-1, the FM-1 sends a chosen track back as the OP-1's USB input to record, and its keys play the OP-1 over USB-MIDI.",
+  "what": "Turns the FM-1 into a controller and USB audio interface for the iOS app Steckfeld SF1 on iPad and iPhone: the keys play Steckfeld, the knobs and buttons edit it, and the screen shows the selected module.",
   "author": "Daniel Pangerl",
-  "kinds": "other"
+  "kinds": ["other"],
+  "image": "docs/fernbedienung/card.png",
+  "color": "#FFD400"
 }

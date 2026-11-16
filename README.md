@@ -1,58 +1,33 @@
-<h1 align="center">FM-1 AudioBase forks</h1>
+<h1 align="center">Fernbedienung</h1>
 
 <p align="center">
-  Free firmware apps for the M-VAVE FM-1, forked from FM1_AudioBase<br>
-  <a href="BUILDING.md">Building</a> ·
-  <a href="docs/DEVELOPING.md">Developing</a>
+  The M-VAVE FM-1 as hardware controller for Steckfeld SF1 on iPad and iPhone<br>
+  <a href="https://thefirmwarehub.com/">Install (FM-1 Firmware Hub)</a> ·
+  <a href="https://apps.apple.com/app/steckfeld-sf1/id6830018147">Steckfeld SF1 on the App Store</a> ·
+  <a href="CHANGELOG.md">Changelog</a> ·
+  <a href="BUILDING.md">Building</a>
 </p>
 
-This repository holds several firmware apps for the M-VAVE FM-1, all built on stevexfer's
-[FM1_AudioBase](https://github.com/stevexfer/FM1_AudioBase). Each app is its own firmware; you install one at a time.
+## Install
 
-| # | App | What it is | Folder |
-|---|---|---|---|
-| 1 | Beiwagen | USB sidecar for the teenage engineering OP-1 Field | [firmware/apps/beiwagen](firmware/apps/beiwagen) |
-| 2 | Fernbedienung | Controller and USB audio interface for Steckfeld SF1 on iPad and iPhone | [firmware/apps/fernbedienung](firmware/apps/fernbedienung) |
+Install from the [FM-1 Firmware Hub](https://thefirmwarehub.com/): pick Fernbedienung, plug in the FM-1, follow the
+steps. It installs over M-VAVE's official firmware and over other community firmware, and you can go back to the
+official firmware from there too.
 
-## Beiwagen
+While an update is written, the FM-1 shows the update screen of Elektro Kabelmaier, the electronics shop inside
+Steckfeld SF1. Don't unplug it until it restarts.
 
-Beiwagen is free firmware for the M-VAVE FM-1 that works together with an OP-1 Field, and only with one. The FM-1
-plugs into the OP-1 with one USB cable; the OP-1, as the USB host, sends its tape tracks to the FM-1 and records what
-comes back.
+## What it is
 
-**Works now** (tested on an FM-1 with an OP-1 Field, firmware 1.7.3):
+<p align="center"><img src="docs/fernbedienung/hub.png" alt="Fernbedienung: the FM-1's screens for Steckfeld SF1" width="800"></p>
 
-- **OP-1 → FM-1:** with the OP-1 in USB mode 8, its four tape tracks arrive as four stereo pairs, 44.1 kHz.
-- **FM-1 → OP-1:** the pair chosen with KNOB1 plays on the FM-1 and goes back to the OP-1 as its USB input, to be
-  recorded onto another tape track.
-- **Keys → OP-1:** the FM-1's keys play the OP-1 over USB-MIDI (OCT−/+ for octaves; channel and velocity on HOME).
-  On the OP-1, set its MIDI to receive notes, not only send them.
-- **Diagnostics** (HOME, second page): the stream's counters, a meter per channel, the host's last USB requests.
+Fernbedienung turns the FM-1 into the hardware controller for [Steckfeld SF1](https://steckfeld.app), a modular synth app
+for iPad and iPhone ([App Store](https://apps.apple.com/app/steckfeld-sf1/id6830018147)). The FM-1 plugs into the iPad or iPhone over USB-C: its keys play
+Steckfeld, its knobs and buttons edit it, its screen shows the selected module, and it is Steckfeld's audio output.
+Each Fernbedienung version goes with one Steckfeld version; the [changelog](CHANGELOG.md) says which. More on
+[steckfeld.app/fm1-firmware/fernbedienung](https://steckfeld.app/fm1-firmware/fernbedienung).
 
-**Built, not yet tested on an FM-1:**
-
-- **Mixdown (GLO):** all four tracks in, each with level, pan, a filter/drive insert and sends to a shared delay
-  and reverb; GLO again mutes the page's track. REC finds the track the mix is recorded onto (the OP-1's selected
-  one) and keeps it out of the mix. Typical use: tracks 1-3 with effects, bounced onto track 4.
-- **Sequencer (SEQ) and arpeggiator (ARP):** 27 patterns of up to 32 steps, a step view, step entry and live
-  recording (REC in SEQ), swing, internal tempo or the OP-1's MIDI clock; the arp plays held keys. PLAY starts and
-  stops.
-- **Presets and patterns on the keys:** hold SAVE and press a key to store, hold SEL and press a key to load.
-
-**Planned:** modulation (LFO, ENV), and later synths of its own.
-
-The OP-1 puts its USB input on the selected track, together with what is played live, so the mix is recorded onto
-a track that is not in it: select track 4 on the OP-1, press REC on the FM-1 once (it finds track 4 and mutes it in
-the mix), then play the tape and record.
-
-## Fernbedienung
-
-The FM-1 plugs into an iPad or iPhone running Steckfeld SF1 over USB-C.
-
-**Works now** (tested with Beiwagen's firmware on an iPad): the iPad lists the FM-1 as an audio output and plays
-Steckfeld through it; the FM-1's keys play Steckfeld over USB-MIDI.
-
-**Built, not yet tested on an FM-1:**
+**What it does** (tested on an FM-1 with an iPad and Steckfeld SF1 1.4.0):
 
 - **Audio:** the iPad's stereo out plays on the FM-1, MASTER sets the volume.
 - **Keys:** notes, OCT−/+ for octaves, on the FM-1's MIDI channel with its velocity.
@@ -69,12 +44,12 @@ Steckfeld through it; the FM-1's keys play Steckfeld over USB-MIDI.
   colours: blue by day, red in the dark. Until Steckfeld answers, the FM-1 says it is waiting and the controls still
   work.
 
-The protocol is in [docs/fernbedienung/protocol.md](docs/fernbedienung/protocol.md). Steckfeld's side of it is not
-released yet.
+The protocol is in [docs/fernbedienung/protocol.md](docs/fernbedienung/protocol.md) (CC0: any app may implement
+it).
 
 > [!WARNING]
-> **Installing custom firmware is at your own risk.** These apps are unofficial firmware, provided as is, without any
-> warranty (GPL-3.0 sections 15 and 16). They are not made, endorsed or supported by M-VAVE or teenage engineering. A
+> **Installing custom firmware is at your own risk.** Fernbedienung is unofficial firmware, provided as is, without any
+> warranty (GPL-3.0 sections 15 and 16). It is not made, endorsed or supported by M-VAVE or teenage engineering. A
 > failed or interrupted install can leave the FM-1 unable to start until it is recovered with a USB tool. You can
 > return to the official firmware at any time.
 
@@ -85,7 +60,8 @@ a release is made. [docs/DEVELOPING.md](docs/DEVELOPING.md) describes the platfo
 
 ## Credits
 
-These apps are forks of [FM1_AudioBase](https://github.com/stevexfer/FM1_AudioBase) by stevexfer, itself a fork of
+Fernbedienung is a fork of [Beiwagen](https://github.com/DPangerl/beiwagen), itself a fork of
+[FM1_AudioBase](https://github.com/stevexfer/FM1_AudioBase) by stevexfer, itself a fork of
 MOOD_FM1, the FM-1 port of MOOD, which was built on [GATOR](https://github.com/npi3pak/fm1-gator) by npi3pak. It
 stands on the work of:
 
@@ -106,12 +82,14 @@ stands on the work of:
 
 ## License
 
-These apps are free software under the [GNU General Public License v3.0 only](LICENSE), provided without any
+Fernbedienung is free software under the [GNU General Public License v3.0 only](LICENSE), provided without any
 warranty. The parts it is built from keep their licences and copyright notices:
 
 | Part | Author | Licence | Text |
 |---|---|---|---|
-| Beiwagen (the beiwagen app, its USB playback changes) | Daniel Pangerl | GPL-3.0-only | [LICENSE](LICENSE) |
+| Beiwagen (USB playback changes, the page kit `bw_ui.h`, the keys `bw_keys.h`) | Daniel Pangerl | GPL-3.0-only | [LICENSE](LICENSE) |
+| Fernbedienung (the fernbedienung app, system settings, the loader's update screen) | Daniel Pangerl | GPL-3.0-only | [LICENSE](LICENSE) |
+| Fernbedienung protocol (`docs/fernbedienung/`) | Daniel Pangerl | CC0-1.0 | [protocol.md](docs/fernbedienung/protocol.md) |
 | FM1_AudioBase, MOOD_FM1's visualizer, GATOR (the app, web installer, release tooling) | stevexfer; npi3pak | GPL-3.0-only | [LICENSE](LICENSE) |
 | Felucca platform: HAL, update loader, USB-MIDI, USB audio, OTA, storage, tools (through ORBIT and SLOOP, modified) | Leo Kuroshita, Hügelton Instruments | GPL-3.0-only | [LICENSE](LICENSE) |
 | Web install protocol `fm1ota.js`, `fm1pkg.js` (from SLOOP 2.7; `fm1ota.js` finds the loader's macOS port names too) | Leo Kuroshita, Hügelton Instruments; isod89 | GPL-3.0-only | [LICENSE](LICENSE) |
@@ -123,4 +101,4 @@ Every release and the web installer carry these licence texts next to the packag
 source is its tag in this repository. [LICENSING.md](LICENSING.md) has the details.
 
 "M-VAVE" and "FM-1" are trademarks of their respective owners; "teenage engineering" and "OP-1" are trademarks of
-teenage engineering. These apps are not affiliated with, endorsed by or supported by them.
+teenage engineering. Fernbedienung is not affiliated with, endorsed by or supported by them.

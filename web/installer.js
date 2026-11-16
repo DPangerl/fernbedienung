@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Copyright (C) 2026 npi3pak
-// Modified for Beiwagen, 2026 (Daniel Pangerl): identity FM-1_14923XY
+// Modified for Beiwagen, 2026 (Daniel Pangerl): identity FM-1_14923XY; Fernbedienung: FM-1_14924XY
 import { Updater } from "./fm1ota.js";
 import { productOf, logicalImage, sha256hex, validateStockPackage } from "./fm1pkg.js";
 
@@ -36,7 +36,7 @@ const MSG = {
 };
 
 const LOADER_MARK = "FELUCCA-LOADER-1";
-const OUR_PRODUCT = /^FM-1_14923\d\d$/;
+const OUR_PRODUCT = /^FM-1_14924\d\d$/;
 const $ = (id) => document.getElementById(id);
 
 const state = {

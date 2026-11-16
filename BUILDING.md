@@ -18,7 +18,7 @@ PYTHON=.venv/bin/python ./build.sh --app demo      # build/demo.fwsc        (the
 ```
 
 Options: `--app NAME` (`firmware/apps/NAME`, default `audiobase`), `--fs 48|44` (the codec clock,
-`firmware/sys/fw_rate.h`: 48 kHz by default; 44 is for comparison, and its USB audio runs at 44.1 kHz), `--name NAME` (the package's file name), `--release X.Y` (identity `FM-1_14923XY`, version
+`firmware/sys/fw_rate.h`: 48 kHz by default; 44 is for comparison, and its USB audio runs at 44.1 kHz), `--name NAME` (the package's file name), `--release X.Y` (identity `FM-1_14924XY`, version
 `X.Y` on the splash). Environment: `FW_UART=0` (no TRS MIDI), `FW_UBOOT_COMBO=0` (no OCT−+OCT+ 5 s), `FELUCCA_OTA_DRYRUN=1`
 (an update runs to the end but writes nothing), `JOBS=N` (parallel C++ compiles). C++ is rebuilt incrementally
 (`build/cxx/APP/`).
@@ -74,14 +74,14 @@ computer recorded, `panel.ppm` the panel at the end. `FM1_BENCH_KEYS`: `MS:pot:N
 
 ## Releasing
 
-A release is a tag `vX.Y` (one digit each: the package identity is `FM-1_14923XY`).
+A release is a tag `vX.Y` (one digit each: the package identity is `FM-1_14924XY`).
 
 1. Add `docs/releases/X.Y.md` (the release notes) and commit.
-2. `tools/release.py X.Y` makes `build/release-X.Y/`: `beiwagen-X.Y.fwsc`, `SHA256SUMS` and the licences.
+2. `tools/release.py X.Y` makes `build/release-X.Y/`: `fernbedienung-X.Y.fwsc`, `SHA256SUMS` and the licences.
 3. Test the package on a real FM-1: install it from the official V15 and from another firmware, and install another
    firmware over it.
 4. `git tag vX.Y && git push origin vX.Y`, then
-   `gh release create vX.Y build/release-X.Y/beiwagen-X.Y.fwsc build/release-X.Y/SHA256SUMS --notes-file docs/releases/X.Y.md`.
+   `gh release create vX.Y build/release-X.Y/fernbedienung-X.Y.fwsc build/release-X.Y/SHA256SUMS --notes-file docs/releases/X.Y.md`.
    The Firmware Hub picks the release up within three hours (`fmhub.json` is the card's text).
 
 The GitHub Actions workflows in `.github/workflows/` come from upstream and are disabled on this repository.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 npi3pak
-# Modified for Beiwagen, 2026 (Daniel Pangerl): identity FM-1_14923XY
+# Modified for Beiwagen, 2026 (Daniel Pangerl): identity FM-1_14923XY; Fernbedienung: FM-1_14924XY
 """Make the installer site, a static folder for GitHub Pages (or any HTTPS / localhost server):
 
   index.html installer.js fm1ota.js fm1pkg.js            the page (web/)
@@ -46,8 +46,8 @@ def fw_version():
 
 def describe(meta, file, raw, version):
     product = fm1_install.product_of(raw)
-    if not re.fullmatch(r"FM-1_14923\d\d", product):
-        raise SystemExit(f"{file}: identity {product!r} is not a Beiwagen package (FM-1_14923XY)")
+    if not re.fullmatch(r"FM-1_14924\d\d", product):
+        raise SystemExit(f"{file}: identity {product!r} is not a Fernbedienung package (FM-1_14924XY)")
     if LOADER_MARK not in raw:
         raise SystemExit(f"{file}: no Felucca update loader in it")
     return {"id": meta["id"], "file": file, "title": meta["title"], "tag": meta["tag"], "desc": meta["desc"],

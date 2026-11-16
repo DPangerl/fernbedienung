@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
-# Modified for Beiwagen, 2026 (Daniel Pangerl): --fs from the app's build.txt, the default app beiwagen
+# Modified for Beiwagen, 2026 (Daniel Pangerl): --fs from the app's build.txt, the default app fernbedienung
 # Modified for Fernbedienung, 2026 (Daniel Pangerl): the script commands usbup, midiout, sysex
 """Build the host simulator (the app's C code with a stub HAL) and run a script.
 
   tools/sim.py [SCRIPT]          default script: host/<app>.sim
-  tools/sim.py --app demo        another firmware/apps/ app (default: beiwagen)
+  tools/sim.py --app demo        another firmware/apps/ app (default: fernbedienung)
   tools/sim.py --no-sanitize     faster build, no ASan/UBSan
   tools/sim.py --test            host tests (flash storage) instead of a script
 

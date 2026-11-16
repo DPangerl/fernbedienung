@@ -22,8 +22,8 @@
 #error "fernbedienung: build.txt defines APP_SYSEX"
 #endif
 
-#include "../beiwagen/bw_ui.h"
-#include "../beiwagen/bw_keys.h"
+#include "bw_ui.h"
+#include "bw_keys.h"
 #include "fb_proto.h"
 #include "fb_link.h"
 #include "fb_pics_a.h"
