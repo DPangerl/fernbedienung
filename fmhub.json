@@ -1,5 +1,5 @@
 {
-  "what": "Turns the FM-1 into a controller and USB audio interface for the iOS app Steckfeld SF1 on iPad and iPhone: the keys play Steckfeld, the knobs and buttons edit it, and the screen shows the selected module.",
+  "what": "Turns the FM-1 into the USB audio interface and the full controller for the iOS app Steckfeld SF1 on iPad and iPhone. The screen shows the same values as Steckfeld, so you can edit every module from the FM-1 without opening the programmer. The hacker crews get their own screens on the FM-1 too.",
   "author": "Kabelmaier",
   "kinds": ["other"],
   "image": "docs/fernbedienung/card.png",

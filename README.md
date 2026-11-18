@@ -23,7 +23,9 @@ Steckfeld SF1. Don't unplug it until it restarts.
 
 Fernbedienung turns the FM-1 into the hardware controller for [Steckfeld SF1](https://steckfeld.app), a modular synth app
 for iPad and iPhone ([App Store](https://apps.apple.com/app/steckfeld-sf1/id6830018147)). The FM-1 plugs into the iPad or iPhone over USB-C: its keys play
-Steckfeld, its knobs and buttons edit it, its screen shows the selected module, and it is Steckfeld's audio output.
+Steckfeld, its knobs and buttons edit it, and it is Steckfeld's audio interface. The screen shows the same values as
+Steckfeld, so the FM-1 replaces the programmer: everything but placing modules works from the FM-1. The hacker crews
+get their own screens on the FM-1 too.
 Each Fernbedienung version goes with one Steckfeld version; the [changelog](CHANGELOG.md) says which. More on
 [steckfeld.app/fm1-firmware/fernbedienung](https://steckfeld.app/fm1-firmware/fernbedienung).
 

@@ -13,6 +13,11 @@ Goes with Steckfeld SF1 1.5.0 and newer. Tested on an FM-1 with an iPad.
 
 - The hacker crews' modules (VÝPIS, COMBINÉ, 曲げ MAGE, SCHLIERE) get the whole screen in their crew's look: picture, tiles, header and footer.
 
+### Changed
+
+- README and the Firmware Hub card: the FM-1 is the full controller (every module can be edited from it without
+  Steckfeld's programmer) and the hacker crews have their own screens.
+
 ### Fixed
 
 - The screen fell further and further behind Steckfeld while a picture moved: the FM-1 took one message per drawn
