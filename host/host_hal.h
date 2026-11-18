@@ -93,6 +93,8 @@ static int32_t fm1_enc_take(uint32_t e)
     return s;
 }
 
+static int32_t fm1_enc_take_tick(uint32_t e) { return fm1_enc_take(e); }
+
 static void fm1_led_key(uint32_t id, int on)
 {
     if (on)

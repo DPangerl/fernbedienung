@@ -5,6 +5,20 @@ All notable changes to Fernbedienung. The format follows
 
 ## [Unreleased]
 
+## [1.1] - 2026-11-18
+
+Goes with Steckfeld SF1 1.5.0 and newer. Tested on an FM-1 with an iPad.
+
+### Added
+
+- The hacker crews' modules (VÝPIS, COMBINÉ, 曲げ MAGE, SCHLIERE) get the whole screen in their crew's look: picture, tiles, header and footer.
+
+### Fixed
+
+- The screen fell further and further behind Steckfeld while a picture moved: the FM-1 took one message per drawn
+  frame. It now takes every waiting message before it draws.
+- Knob turns go out once a millisecond instead of once per drawn frame, so Steckfeld sees how fast a knob turns.
+
 ## [1.0] - 2026-11-16
 
 Goes with Steckfeld SF1 1.4.0. Tested on an FM-1 with an iPad.
@@ -21,5 +35,6 @@ Goes with Steckfeld SF1 1.4.0. Tested on an FM-1 with an iPad.
 - System settings (hold HOME, press EDIT): theme Sync / Light / Dark.
 - The update loader shows Elektro Kabelmaier's update screen while it writes.
 
-[Unreleased]: https://github.com/DPangerl/fernbedienung/compare/v1.0...HEAD
+[Unreleased]: https://github.com/DPangerl/fernbedienung/compare/v1.1...HEAD
+[1.1]: https://github.com/DPangerl/fernbedienung/compare/v1.0...v1.1
 [1.0]: https://github.com/DPangerl/fernbedienung/releases/tag/v1.0

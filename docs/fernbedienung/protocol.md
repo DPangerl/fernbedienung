@@ -39,8 +39,8 @@ Categories and the module kinds the app puts in each:
 | # | Category | Button | Kinds |
 |---|---|---|---|
 | 0 | HOME | HOME | macro; with no macro in the bay, the output (amp), so HOME always shows something |
-| 1 | SCL | SCL | oscillator, wavetable, FM, string, grain |
-| 2 | FX | FX | filter, delay, reverb, distortion, chorus, EQ, compressor |
+| 1 | SCL | SCL | oscillator, wavetable, FM, string, grain, VÝPIS, 曲げ MAGE, SCHLIERE |
+| 2 | FX | FX | filter, delay, reverb, distortion, chorus, EQ, compressor, COMBINÉ |
 | 3 | LFO | LFO | LFO |
 | 4 | ENV | ENV | envelope |
 | 5 | SEQ | SEQ | sequencer |
@@ -83,7 +83,7 @@ ACK and then sends the full state: SCREEN, CONTROLS, PICTURE.
 | 02 | ACK | protocol version, theme (1 light, 2 dark: the app's own) |
 | 10 | SCREEN | category, mode (0 Edit, 1 Route), kind (below), page, page count, flags (bit 0: macro step armed, bit 1: transport running), title str, page count × page title str, REC label str, SAVE label str (empty: the button does nothing here) |
 | 11 | CONTROLS | 4 × control: flags (bit 0 present, bit 1 live value follows), position v14, live v14 if bit 1, title str, readout str |
-| 20 | PICTURE | kind, n, n × v14, array length v14, array bytes (7-bit). Layout per kind: [pictures-a.md](pictures-a.md), [pictures-b.md](pictures-b.md) |
+| 20 | PICTURE | kind, n, n × v14, array length v14, array bytes (7-bit). Layout per kind: [pictures-a.md](pictures-a.md), [pictures-b.md](pictures-b.md), [pictures-c.md](pictures-c.md) |
 | 21 | LIVE | kind, n, n × v14: what moves (playhead, peaks, modulated values), up to 30 times a second |
 | 12 | NOTICE | text str (empty: none; at most 18 characters, e.g. "Sound on iPad", "Clock: external"), action str (what REC does about it, at most 10, e.g. "use FM-1"; empty: nothing). Shown in the footer, amber, until replaced |
 | 13 | BAY | categories v14: bit n set, category n (the table above) has a module in the bay. Sent with the full state and whenever that changes. The FM-1 turns off the backlight of the buttons of empty categories; until BAY comes, every category counts as full |
@@ -105,8 +105,10 @@ Module kinds:
 | 3 | wavetable | 11 | distortion | 19 | MIDI |
 | 4 | string | 12 | chorus | 20 | macro |
 | 5 | FM | 13 | EQ | 21 | sequencer |
-| 6 | filter | 14 | compressor | | |
-| 7 | LFO | 15 | grain | | |
+| 6 | filter | 14 | compressor | 22 | VÝPIS (dump) |
+| 7 | LFO | 15 | grain | 23 | COMBINÉ |
+| | | | | 24 | 曲げ MAGE |
+| | | | | 25 | SCHLIERE (smear) |
 
 ## The FM-1's own settings (EDIT)
 

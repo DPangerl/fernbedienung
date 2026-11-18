@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
+ * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments
+ * Modified for Fernbedienung, 2026 (Daniel Pangerl): fm1_enc_take_tick */
 /* FM-1 input HAL: key/button/encoder matrix and LEDs.
  *
  * One 11-column x 6-row diode matrix behind a 2x74HC595 chain (PA4 SER, PA3
@@ -336,6 +337,14 @@ static int32_t fm1_enc_take(uint32_t e)
     int32_t s = fm1_in.enc_steps[e];
     fm1_in.enc_steps[e] = 0;
     fm1__unlock(k);
+    return s;
+}
+
+/* the same from TIMER5, where fm1_input_tick runs: no lock (fm1__unlock would enable interrupts in the ISR) */
+static int32_t fm1_enc_take_tick(uint32_t e)
+{
+    const int32_t s = fm1_in.enc_steps[e];
+    fm1_in.enc_steps[e] = 0;
     return s;
 }
 

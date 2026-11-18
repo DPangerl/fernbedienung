@@ -36,8 +36,12 @@ typedef struct {
 #define FB_SCR_ARMED 1u
 #define FB_SCR_RUNNING 2u
 
+#define FB_CTL_PRESENT 1u
+#define FB_CTL_LIVE 2u
+#define FB_CTL_NOBAR 4u                     /* local tiles: no position */
+
 typedef struct {
-    uint8_t flags;                          /* bit 0 present, bit 1 live follows */
+    uint8_t flags;                          /* FB_CTL_*: bit 0 present, bit 1 live follows */
     uint16_t pos, live;
     char title[FB_LABEL_N + 4u];
     char readout[FB_LABEL_N + 4u];

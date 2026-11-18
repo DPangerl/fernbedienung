@@ -5,7 +5,9 @@
  * Modified for FM1_AudioBase, 2026: the USB audio input's packets nested in the render (FELUCCA_UAC)
  * Modified for Beiwagen, 2026 (Daniel Pangerl): the USB playback endpoint read every tick (FW_USB_PLAY); the app's
  * TIMER5 hook (APP_TICK: app_tick every tick, 10 kHz) and with it the MIDI endpoint served inside the render too;
- * the system settings (settings.c) over the app */
+ * the system settings (settings.c) over the app
+ * Modified for Fernbedienung, 2026 (Daniel Pangerl): every waiting app SysEx frame taken before the frame
+ * (fw_drain_sysex) */
 extern uint32_t _data_start[], _data_end[], _data_load[], _bss_start[], _bss_end[];
 extern uint32_t _pool_start[], _pool_end[], _rt_start[], _rt_end[], _rt_load[];
 #if FM1_CPU1_USED
@@ -155,8 +157,10 @@ static void fw_uboot_combo(uint32_t now)
     draw_text_box(0, 128, 240, &FONT_S, d, C_ACCENT, 1);
 }
 
-static void fw_service_usb(void)
+/* 1: an app SysEx frame was taken */
+static int fw_service_usb(void)
 {
+    int took = 0;
 #if defined(APP_SYSEX) && FELUCCA_OTA
     {
         /* an update frame starts pack7(00 59 ..), so any other first byte is the app's (app.c app_sysex). One look
@@ -167,6 +171,7 @@ static void fw_service_usb(void)
             if (n && p[0] != 0) {
                 app_sysex(p, n);
                 ota_frame_done();
+                took = 1;
             } else
                 ota_service();
         }
@@ -184,7 +189,26 @@ static void fw_service_usb(void)
     }
     if (usb.uboot_req)
         fw_enter_uboot("UBOOT (USB)");
+    return took;
 }
+
+/* every SysEx frame the host has waiting, before the app draws: one frame per frame fell behind a host that sends
+   more than the frame rate (Fernbedienung's LIVE): the host was held back and the screen lagged further and further.
+   The next frame comes in at the next USB poll (2 kHz): wait FW_SX_GAP_MS for it, FW_SX_BUDGET_MS in all */
+#if defined(APP_SYSEX) && FELUCCA_OTA
+#define FW_SX_GAP_MS 2u
+#define FW_SX_BUDGET_MS 8u
+static void fw_drain_sysex(void)
+{
+    const uint32_t t0 = fm1_ms;
+    uint32_t last = t0;
+    while (fm1_ms - last < FW_SX_GAP_MS && fm1_ms - t0 < FW_SX_BUDGET_MS) {
+        fm1_wdt_feed();
+        if (fw_service_usb())
+            last = fm1_ms;
+    }
+}
+#endif
 
 static void fw_main(void)
 {
@@ -230,7 +254,11 @@ static void fw_main(void)
         if (bootguard.pending && m - boot_ms >= 30000u)
             bootguard_clear(&bootguard);
         fw_uboot_combo(m);
+#if defined(APP_SYSEX) && FELUCCA_OTA
+        fw_drain_sysex();
+#else
         fw_service_usb();
+#endif
         fw_stats.usb_up = usb.config && !usb.suspended;
         fw_input_read(&in);
         fw_settings_frame(&in);
@@ -238,7 +266,7 @@ static void fw_main(void)
         app_frame(&in);
         lcd_muted = 0;
         while (fm1_ms - m < FW_FRAME_MS)
-            fw_service_usb();
+            (void)fw_service_usb();
     }
 }
 

@@ -9,3 +9,5 @@ define FW_USB_PRODUCT="Fernbedienung FM-1"
 define APP_SYSEX
 # the system settings show THEME (sync with Steckfeld, light, dark)
 define FW_SET_THEME=1
+# the knobs' CCs go out from TIMER5 once a ms (app_tick), not once per drawn frame
+define APP_TICK=1

@@ -5,7 +5,7 @@
  * change since it was drawn is left alone, and the picture redraws at most every FB_PIC_MS on a new serial.
  *
  *   0..21     header: the module's title; the page's title and a dot per page; ARMED; the Edit / Route tag
- *   24..107   the picture (the kind's drawer, fb_pics_a.h / fb_pics_b.h), on Route the cables
+ *   24..107   the picture (the kind's drawer, fb_pics_a.h / fb_pics_b.h / fb_pics_c.h), on Route the cables
  *   110..213  2 x 2 tiles: title, readout, where the control stands (and a tick where it plays when modulated)
  *   218..239  footer: what REC and SAVE do here, else the channel and the USB audio */
 #ifndef FB_SCREEN_H
@@ -33,12 +33,32 @@ static const fb_theme_src_t FB_THEMES[2] = {
         RGB(0, 0, 0), RGB(255, 176, 40) } },
 };
 
+/* the hacker crews' screens (fb_crew, fb_pics_c.h): their own ground and inks, whatever the theme */
+static const fb_theme_src_t FB_CREW_THEMES[4] = {
+    /* ZKRAT: the Spectrum's black and blue */
+    { { 3, 4, 16 }, { 3, 4, 16 },
+      { RGB(3, 4, 16), RGB(3, 4, 16), RGB(220, 245, 255), RGB(92, 117, 255), RGB(18, 24, 64),
+        RGB(8, 18, 30), RGB(255, 176, 40) } },
+    /* LIGNE: poster paper */
+    { { 235, 227, 207 }, { 222, 212, 190 },
+      { RGB(235, 227, 207), RGB(222, 212, 190), RGB(18, 15, 18), RGB(110, 100, 92), RGB(205, 195, 172),
+        RGB(8, 18, 30), RGB(255, 176, 40) } },
+    /* KAIRO: night indigo */
+    { { 5, 4, 16 }, { 12, 6, 32 },
+      { RGB(5, 4, 16), RGB(12, 6, 32), RGB(255, 217, 242), RGB(60, 170, 190), RGB(32, 22, 62),
+        RGB(8, 18, 30), RGB(255, 176, 40) } },
+    /* RASTER: the drawing sheet */
+    { { 14, 16, 20 }, { 14, 16, 20 },
+      { RGB(14, 16, 20), RGB(14, 16, 20), RGB(232, 234, 238), RGB(140, 142, 148), RGB(44, 48, 56),
+        RGB(8, 18, 30), RGB(255, 176, 40) } },
+};
+
 static const fb_theme_t* fb_th = &FB_THEMES[0].c;
 static uint16_t fb_grow[240][3];            /* the gradient per screen row, R5 G6 B5 x 16 (dithered when drawn) */
 
 static void fb_theme_set(uint32_t dark)
 {
-    const fb_theme_src_t* t = &FB_THEMES[dark ? 1 : 0];
+    const fb_theme_src_t* t = fb_crew ? &FB_CREW_THEMES[fb_crew - 1u] : &FB_THEMES[dark ? 1 : 0];
     static const uint32_t MAXC[3] = { 31u, 63u, 31u };
     uint32_t y, k;
     fb_th = &t->c;
@@ -115,7 +135,7 @@ static void fb_pic_begin(const fb_theme_t* th)
 
 static const char* const FB_KIND_NAME[FB_K_COUNT] = {
     "Output", "Bridge", "Oscillator", "Wavetable", "String", "FM", "Filter", "LFO", "Envelope", "Delay", "Reverb",
-    "Distortion", "Chorus", "EQ", "Compressor", "Grain", "Chord", "Arp", "Audio in", "MIDI", "Macro", "Sequencer"
+    "Distortion", "Chorus", "EQ", "Compressor", "Grain", "Chord", "Arp", "Audio in", "MIDI", "Macro", "Sequencer", "Dump", "Combine", "Mage", "Smear"
 };
 
 /* two lines centred in the picture region: line 1 large, line 2 small and dim (either may be 0) */
@@ -135,7 +155,7 @@ static void fb_pic_message(const char* l1, const char* l2)
 
 static void fb_pic_draw(const fb_pic_t* pic)
 {
-    if (fb_pics_a_draw(pic, fb_th) || fb_pics_b_draw(pic, fb_th))
+    if (fb_pics_a_draw(pic, fb_th) || fb_pics_b_draw(pic, fb_th) || fb_pics_c_draw(pic))
         return;
     fb_pic_message(pic->kind < FB_K_COUNT ? FB_KIND_NAME[pic->kind] : "", 0);
 }
@@ -222,9 +242,9 @@ static void fb_head_draw(const fb_head_t* h)
     else
         fb_cv(0, FB_HEAD_Y, 240, FB_HEAD_H);
     if (h->tag) {
-        const char* t = h->tag == 2u ? "ROUTE" : "EDIT";
+        const char* t = h->tag == 2u ? "ROUTE" : fb_crew ? pc_crew_name() : "EDIT";
         x -= text_w(&FONT_T, t);
-        ui_text(x, 3, &FONT_T, t, h->route ? ink : dim, bg);
+        ui_text(x, 3, &FONT_T, t, h->route ? ink : fb_crew ? pc_crew_accent() : dim, bg);
         x -= 10;
     }
     if (h->pages > 1u) {
@@ -254,9 +274,6 @@ static void fb_head_draw(const fb_head_t* h)
 }
 
 /* ---- a tile: KNOB i's title, readout and position */
-#define FB_CTL_PRESENT 1u
-#define FB_CTL_LIVE 2u
-#define FB_CTL_NOBAR 4u                     /* local tiles: no position */
 
 static uint32_t fb_tile_x(uint32_t i) { return (i & 1u) * (240u - FB_TILE_W); }
 static uint32_t fb_tile_y(uint32_t i) { return FB_TILE_Y + (i >> 1) * (FB_TILE_H + 4u); }
@@ -267,6 +284,12 @@ static void fb_tile_draw(uint32_t i, const fb_ctl_t* c)
     const uint32_t x0 = fb_tile_x(i), y0 = fb_tile_y(i);
     const int32_t bar_w = (int32_t)FB_TILE_W - 16;
     fb_cv(x0, y0, FB_TILE_W, FB_TILE_H);
+    if (fb_crew) {
+        if (c->flags & FB_CTL_PRESENT)
+            pc_tile(i, c);
+        cv_blit(x0, y0);
+        return;
+    }
     fb_frame_rect(0, 0, (int32_t)FB_TILE_W, (int32_t)FB_TILE_H, th->grid);
     if (c->flags & FB_CTL_PRESENT) {
         const felucca_font_t* f = text_w(&FONT_M, c->readout) <= (int32_t)FB_TILE_W - 16 ? &FONT_M : &FONT_T;

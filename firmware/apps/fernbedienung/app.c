@@ -28,6 +28,7 @@
 #include "fb_link.h"
 #include "fb_pics_a.h"
 #include "fb_pics_b.h"
+#include "fb_pics_c.h"
 #include "fb_screen.h"
 
 #define FB_HELLO_DELAY_MS 300u              /* after USB comes up: the host opens its MIDI port first */
@@ -135,6 +136,50 @@ static void cc_rel(uint32_t num, int32_t detents)
     cc(num, (uint32_t)detents & 127u);
 }
 
+/* ---- the knobs from TIMER5 (APP_TICK), once a ms: their CCs go out as they turn, not once per drawn frame (a draw
+   takes up to ~40 ms: a fast turn came as a few big jumps, and the app's acceleration saw it slow). Not on the
+   settings page, whose knobs edit it in the main loop; what turned between two ms goes out from there too */
+static volatile uint8_t fb_tick_on;                       /* main loop: not the settings page */
+static volatile uint8_t fb_tick_turned;                   /* ALGORITHM or KNOB1..4 turned: the patch list closes */
+static volatile uint8_t fb_tick_spoil[FB_CAT_COUNT];      /* SELECT turned with this category held: no tap */
+
+static int32_t knob_tick(uint32_t knob, uint32_t num)
+{
+    int32_t d = fw_knob_take_tick(knob);
+    if (!d)
+        return 0;
+    d = d > 63 ? 63 : d < -63 ? -63 : d;
+    fw_midi_send_tick((uint8_t)(0xB0u | (uint32_t)(key_ch - 1)), (uint8_t)num, (uint8_t)((uint32_t)d & 127u));
+    return d;
+}
+
+static void app_tick(void)
+{
+    static uint32_t sub;
+    uint32_t i, held, cat = FB_CAT_COUNT;
+    if (++sub < 10u)
+        return;
+    sub = 0;
+    if (!fb_tick_on)
+        return;
+    held = fw_held_tick();
+    for (i = 0; i < FB_CAT_COUNT && cat == FB_CAT_COUNT; i++)
+        if (held & FW_BIT(FB_CAT_BTN[i]))
+            cat = i;
+    if (cat < FB_CAT_COUNT) {
+        if (knob_tick(FW_KNOB_SELECT, FB_CC_CAT_TURN + cat))
+            fb_tick_spoil[cat] = 1;
+    } else {
+        (void)knob_tick(FW_KNOB_SELECT, FB_CC_SELECT);
+    }
+    (void)knob_tick(FW_KNOB_PRESET, FB_CC_PRESETS);
+    if (knob_tick(FW_KNOB_ALGO, FB_CC_ALGO))
+        fb_tick_turned = 1;
+    for (i = 0; i < 4u; i++)
+        if (knob_tick(FB_KNOB[i], FB_CC_KNOB + i))
+            fb_tick_turned = 1;
+}
+
 static void cc_button(const fw_input_t* in, uint32_t btn, uint32_t num, int local)
 {
     if (in->pressed & FW_BIT(btn) && !local) {
@@ -171,6 +216,7 @@ static void controls(const fw_input_t* in)
             fb_setup_open = 1;
     }
     local = fb_setup_open;
+    fb_tick_on = (uint8_t)!local;
     if (local)
         fb_setup_controls(in);
     for (i = 0; i < FB_CAT_COUNT; i++) {
@@ -179,6 +225,10 @@ static void controls(const fw_input_t* in)
             fb_cat_spoilt &= ~FW_BIT(i) | (local ? FW_BIT(i) : 0u);
         if (in->held & b && held_cat == FB_CAT_COUNT)
             held_cat = i;
+        if (fb_tick_spoil[i]) {
+            fb_tick_spoil[i] = 0;
+            fb_cat_spoilt |= FW_BIT(i);
+        }
     }
     if (!local) {
         if (held_cat < FB_CAT_COUNT && in->knob[FW_KNOB_SELECT]) {   /* category held + SELECT: its modules */
@@ -192,10 +242,11 @@ static void controls(const fw_input_t* in)
         for (i = 0; i < 4u; i++)
             cc_rel(FB_CC_KNOB + i, in->knob[FB_KNOB[i]]);
         /* the patch list closes on any control but PRESETS, SELECT (its filter) and REC (the app closes it too; here at once) */
-        if (fb.list[1].open && (in->knob[FW_KNOB_ALGO] || in->knob[FB_KNOB[0]] ||
+        if (fb.list[1].open && (fb_tick_turned || in->knob[FW_KNOB_ALGO] || in->knob[FB_KNOB[0]] ||
                                 in->knob[FB_KNOB[1]] || in->knob[FB_KNOB[2]] || in->knob[FB_KNOB[3]] ||
                                 (in->pressed & ~(FW_BIT(FW_BTN_REC) | FW_BIT(FW_BTN_OCT_DOWN) | FW_BIT(FW_BTN_OCT_UP)))))
             fb_list_close();
+        fb_tick_turned = 0;
     }
     for (i = 0; i < FB_CAT_COUNT; i++)
         if (in->released & FW_BIT(FB_CAT_BTN[i]) && !(fb_cat_spoilt & FW_BIT(i)) && !local)
@@ -382,6 +433,7 @@ static void fb_local_pic(uint32_t view)
 static void draw(uint32_t ms)
 {
     const uint32_t view = fb_view();
+    const uint32_t crew = view == FB_V_MAIN && fb.scr.mode == 0u ? pc_crew_of(fb.scr.kind) : 0u;
     const uint32_t dark = fw_theme() == FW_THEME_DARK ||
                           (fw_theme() == FW_THEME_SYNC && fb.link == FB_LINK_ON && fb.app_theme == 2u);
     fb_head_t h;
@@ -389,8 +441,9 @@ static void draw(uint32_t ms)
     fb_foot_t f;
     uint32_t i, dirty = fb.dirty, key;
     fb.dirty = 0;
-    if (fb_never_drawn || view != shown.view || dark != shown.dark) {
+    if (fb_never_drawn || view != shown.view || dark != shown.dark || crew != fb_crew) {
         fb_never_drawn = 0;
+        fb_crew = crew;
         fb_theme_set(dark);
         shown.view = view;
         shown.dark = dark;
@@ -411,7 +464,7 @@ static void draw(uint32_t ms)
         if (view == FB_V_MAIN) {
             key = fb.scr.mode;
             if (dirty & FB_D_PIC || key != shown.pic_key ||
-                ((fb.pic.serial != shown.pic_serial || (fb.scr.mode == 0u && fb_pics_a_moves(&fb.pic))) &&
+                ((fb.pic.serial != shown.pic_serial || (fb.scr.mode == 0u && (fb_pics_a_moves(&fb.pic) || fb_pics_c_moves(&fb.pic)))) &&
                  ms - shown.pic_ms >= FB_PIC_MS)) {
                 if (fb.scr.mode == 1u)
                     fb_route_draw(&fb.list[0]);
