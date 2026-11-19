@@ -4,15 +4,14 @@
  * fb_proto.h. Each region is drawn from a small description of what it shows; a region whose description did not
  * change since it was drawn is left alone, and the picture redraws at most every FB_PIC_MS on a new serial.
  *
- *   0..21     header: the module's title; the page's title and a dot per page; ARMED; the Edit / Route tag
- *   24..107   the picture (the kind's drawer, fb_pics_a.h / fb_pics_b.h / fb_pics_c.h), on Route the cables
+ *   0..21     header: the module's title; the page's title and a dot per page; UNSAVED; the Edit / Route tag
+ *   24..107   the picture (the kind's drawer, fb_pics_a.h .. fb_pics_d.h), on Route the cables
  *   110..213  2 x 2 tiles: title, readout, where the control stands (and a tick where it plays when modulated)
  *   218..239  footer: what REC and SAVE do here, else the channel and the USB audio */
 #ifndef FB_SCREEN_H
 #define FB_SCREEN_H
 
 #define FB_PIC_MS 33u                       /* ~30 pictures a second at most */
-#define FB_ARMED_MS 400u                    /* ARMED blinks this fast */
 #define FB_GRID 14                          /* the raster's pitch, as Steckfeld's display */
 
 /* ---- themes: Steckfeld's display colours (App/UI/Theme.swift), pushed more saturated: at this panel's default
@@ -135,7 +134,8 @@ static void fb_pic_begin(const fb_theme_t* th)
 
 static const char* const FB_KIND_NAME[FB_K_COUNT] = {
     "Output", "Bridge", "Oscillator", "Wavetable", "String", "FM", "Filter", "LFO", "Envelope", "Delay", "Reverb",
-    "Distortion", "Chorus", "EQ", "Compressor", "Grain", "Chord", "Arp", "Audio in", "MIDI", "Macro", "Sequencer", "Dump", "Combine", "Mage", "Smear"
+    "Distortion", "Chorus", "EQ", "Compressor", "Grain", "Chord", "Arp", "Audio in", "MIDI", "Macro", "Sequencer", "Dump", "Combine", "Mage", "Smear",
+    "Drum", "Prise", "Kodama", "Sampler", "Radio"
 };
 
 /* two lines centred in the picture region: line 1 large, line 2 small and dim (either may be 0) */
@@ -155,7 +155,7 @@ static void fb_pic_message(const char* l1, const char* l2)
 
 static void fb_pic_draw(const fb_pic_t* pic)
 {
-    if (fb_pics_a_draw(pic, fb_th) || fb_pics_b_draw(pic, fb_th) || fb_pics_c_draw(pic))
+    if (fb_pics_a_draw(pic, fb_th) || fb_pics_b_draw(pic, fb_th) || fb_pics_c_draw(pic) || fb_pics_d_draw(pic))
         return;
     fb_pic_message(pic->kind < FB_K_COUNT ? FB_KIND_NAME[pic->kind] : "", 0);
 }
@@ -226,7 +226,7 @@ static void fb_route_draw(const fb_list_t* l)
 typedef struct {
     char title[FB_TITLE_N];
     char page[FB_LABEL_N];
-    uint8_t cur, pages, route, armed;       /* armed: 0 not, 1 lit, 2 dim */
+    uint8_t cur, pages, route, unsaved;
     uint8_t tag;                            /* 0 none, 1 EDIT, 2 ROUTE */
 } fb_head_t;
 
@@ -235,7 +235,7 @@ static void fb_head_draw(const fb_head_t* h)
     const fb_theme_t* th = fb_th;
     const uint16_t bg = h->route ? th->route_ink : fb_bg_at(10), ink = h->route ? th->route_bg : th->ink;
     const uint16_t dim = h->route ? ui_mix(bg, ink, 9) : th->ink_dim;
-    const int32_t armed_w = h->armed ? text_w(&FONT_T, "ARMED") + 8 + 8 : 0;
+    const int32_t unsaved_w = h->unsaved ? text_w(&FONT_T, "UNSAVED") + 8 + 8 : 0;
     int32_t x = 236, i, pw;
     if (h->route)
         cv_begin(240, FB_HEAD_H, bg);
@@ -245,6 +245,10 @@ static void fb_head_draw(const fb_head_t* h)
         const char* t = h->tag == 2u ? "ROUTE" : fb_crew ? pc_crew_name() : "EDIT";
         x -= text_w(&FONT_T, t);
         ui_text(x, 3, &FONT_T, t, h->route ? ink : fb_crew ? pc_crew_accent() : dim, bg);
+        if (h->tag == 1u && fb_crew == 3u) {   /* 回路 KAIRO, as the crew signs */
+            x -= 32 + 4;
+            pc_kanji(x, 3, 16, 1, "回路", pc_crew_accent(), 256);
+        }
         x -= 10;
     }
     if (h->pages > 1u) {
@@ -255,18 +259,15 @@ static void fb_head_draw(const fb_head_t* h)
         }
         x -= 4;
         pw = h->page[0] ? text_w(&FONT_T, h->page) : 0;
-        if (pw && x - pw - 8 - armed_w >= 6 + text_w(&FONT_M, h->title) + 8) {   /* the page's name, where it fits */
+        if (pw && x - pw - 8 - unsaved_w >= 6 + text_w(&FONT_M, h->title) + 8) {   /* the page's name, where it fits */
             x -= pw;
             ui_text(x, 3, &FONT_T, h->page, ink, bg);
             x -= 8;
         }
     }
-    if (h->armed) {                         /* blinks between a lit chip and its plain word */
-        x -= armed_w - 8;
-        if (h->armed == 1u)
-            ui_chip(x, 2, "ARMED", ink, bg);
-        else
-            ui_text(x + 4, 2, &FONT_T, "ARMED", ink, bg);
+    if (h->unsaved) {
+        x -= unsaved_w - 8;
+        ui_chip(x, 2, "UNSAVED", ink, bg);
         x -= 8;
     }
     ui_text_cut(6, 0, &FONT_M, h->title, x - 6, ink, bg);

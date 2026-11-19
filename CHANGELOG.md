@@ -5,6 +5,27 @@ All notable changes to Fernbedienung. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- The crews' later modules get their own screens: BUBEN (the eight pads lit as they ring, the focused one bracketed),
+  PRISE (the note heard in solfège, a tuner that says JUSTE or FAUX, the four voices), こだま KODAMA (the tape loop
+  with its heads lit as they play, echo time, tape speed, the spring tank), MITSCHNITT (the take with Start, End, loop
+  and voices, the record mode and the BACK buffer; the input level and the take filling up while armed or
+  recording) and EMPFANG (station, line state,
+  L / R meters, S1 AUS). RASTER's three modules are each their own drawing to DIN, as in Steckfeld: SCHLIERE a part
+  drawing, MITSCHNITT a circuit diagram (lamps, potentiometer tiles), EMPFANG a polar diagram (polar tiles).
+  BUBEN's top line is in VÝPIS's pixel font.
+- KAIRO's screens are labelled in Japanese as in Steckfeld: こだま / 木霊 down KODAMA's side, its heads 消 録 一 二 三,
+  頭, 強 and 自励, 速度 and 発条; 曲げ down MAGE's side and 位相 over its phase; 回路 KAIRO in the header. The glyphs
+  come from the public-domain Shinonome fonts, as 1-bit bitmaps (tools/gen_kanji.py).
+
+### Changed
+
+- Macro: follows Steckfeld's new macro (STORE / STEP on REC / SAVE, one page). The header shows
+  UNSAVED instead of the blinking ARMED. The picture shows the four encoders side by side, each with up to four
+  steps stacked upwards, a line between written steps (a notch where a choice switches instead)
+  and a pointer where the encoder stands.
+
 ## [1.1] - 2026-11-18
 
 Goes with Steckfeld SF1 1.5.0 and newer. Tested on an FM-1 with an iPad.

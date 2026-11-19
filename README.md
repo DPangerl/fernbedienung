@@ -97,6 +97,7 @@ warranty. The parts it is built from keep their licences and copyright notices:
 | Web install protocol `fm1ota.js`, `fm1pkg.js` (from SLOOP 2.7; `fm1ota.js` finds the loader's macOS port names too) | Leo Kuroshita, Hügelton Instruments; isod89 | GPL-3.0-only | [LICENSE](LICENSE) |
 | Inter font (rasterised into the firmware) | The Inter Project Authors | SIL OFL 1.1 | [LICENSES/OFL-Inter.txt](LICENSES/OFL-Inter.txt) |
 | Terminus font (rasterised into the firmware) | Dimitar Toshkov Zhekov | SIL OFL 1.1 | [LICENSES/OFL-Terminus.txt](LICENSES/OFL-Terminus.txt) |
+| Shinonome fonts (a few kanji and kana, as bitmaps in the firmware) | Yasuyuki Furukawa; /efont/ | Public domain | [LICENSES/PD-Shinonome.txt](LICENSES/PD-Shinonome.txt) |
 | Three AC79 SDK files in every package (`tools/sdk`, unmodified) | JieLi Technology | Apache-2.0 | [LICENSES/Apache-2.0-JieLi-SDK.txt](LICENSES/Apache-2.0-JieLi-SDK.txt) |
 
 Every release and the web installer carry these licence texts next to the packages, and each release's complete

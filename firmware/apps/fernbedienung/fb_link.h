@@ -33,7 +33,7 @@ typedef struct {
     char act[FB_LABEL_N];                   /* what REC does about it, empty: nothing */
 } fb_notice_t;
 
-#define FB_SCR_ARMED 1u
+#define FB_SCR_UNSAVED 1u                   /* the macro: the rack has changes not yet snapshotted */
 #define FB_SCR_RUNNING 2u
 
 #define FB_CTL_PRESENT 1u

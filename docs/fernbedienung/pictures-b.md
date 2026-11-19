@@ -85,14 +85,14 @@ Drawn in the console look (black, grey type), as `ToolScreen` does for the macro
 | # | Value | Mapping |
 |---|---|---|
 | 1 | v0 | `model.macroEdit.encoder` (0..3: A..D) |
-| 2 | v1 | `model.macroEdit.step` (0..8; equal to the encoder's step count: a new step) |
-| 3 | v2 | flags: bit 0 `macroEdit.isArmed` |
-| 4 | v3..v6 | step count of encoders A..D: `s.macro.encoders[i].steps.count` (0..8) |
+| 2 | v1 | `model.macroEdit.step` (0..3; equal to the encoder's step count: the free slot) |
+| 3 | v2 | flags: bit 0 the rack has changes not yet snapshotted |
+| 4 | v3..v6 | step count of encoders A..D: `s.macro.encoders[i].steps.count` (0..4) |
 | 5 | v7..v10 | position of encoders A..D: frac of `s.macro.encoders[i].position` |
-| 6 | live0 | the display clock in frames: `Int(t × 30) mod 16384` (drives the ARMED blink and the line tear) |
+| 6 | v11..v14 | cut mask of encoders A..D: bit n set when a choice switches at step n (step 0 never) |
 
-No `arr`. The dump and the log are left out (no room at 84 px). Send LIVE at 30 fps while armed; otherwise a few
-times a second is enough for the tear.
+No `arr`, no LIVE. The FM-1 draws the encoders side by side, each a tower of its steps from step 1 at the bottom;
+a step with its cut bit gets a notch and no fade line into it.
 
 ## 8. Audio in (kind 18), `AudioInDisplay`
 
@@ -166,5 +166,5 @@ values (send the array again only when the tail changes). 240 bytes.
   in place of the set one if it should move.
 - MIDI: the 16 channels are 2 rows of 8, not 4 × 4.
 - Sequencer: no step numbers on the keys.
-- Macro: title, status, the four encoder rows and the cursor line only; no dump, log or byte stream.
+- Macro: the four encoders as towers of steps instead of rows; no dump, log or byte stream.
 - Envelope: no A D S R labels; output and reverb labels use the FM-1's own type.

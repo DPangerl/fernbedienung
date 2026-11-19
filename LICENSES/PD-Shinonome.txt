@@ -1,0 +1,30 @@
+Shinonome fonts (xfonts-shinonome 0.9.11, bdf/shnmk16.bdf and bdf/shnmk12.bdf)
+Original design: Yasuyuki Furukawa, 2000. Maintained by /efont/, The Electronic Font Open Laboratory,
+http://openlab.ring.gr.jp/efont/shinonome/ ; archive as distributed by Debian:
+https://deb.debian.org/debian/pool/main/x/xfonts-shinonome/xfonts-shinonome_0.9.11.orig.tar.gz
+
+Fernbedienung uses a few kanji and kana from these fonts as 1-bit bitmaps (tools/gen_kanji.py ->
+firmware/apps/fernbedienung/fb_kanji.h).
+
+English summary of the licence below (the Japanese original is authoritative): all font data, documents and
+scripts in the archive are provided as Public Domain. Since copyright cannot be waived under Japanese law at
+present, the authors listed in AUTHORS declare that they will not exercise their rights, making the fonts public
+domain in effect. Free modification, conversion to other formats, embedding and redistribution are permitted.
+All of it comes with no warranty whatsoever.
+
+The original LICENSE file (converted from EUC-JP to UTF-8):
+
+●東雲フォントライセンス
+                                                                    2001
+                                     The Electronic Font Open Laboratory
+                                        http://openlab.ring.gr.jp/efont/
+
+このアーカイブに含まれるすべてのフォントデータ、ドキュメント、スクリプ
+ト類はすべて Public Domain で提供されています 。
+
+但し、日本に於いては現時点で著作権を放棄することは法律上不可能であり、
+AUTHORS に列挙されている作者がその権利を行使しないと宣言することで実質
+的な Public Domain であるとします。
+
+自由な改造、他フォーマットへの変換、組込み、再配布を行うことができます。
+同時に、これらはすべて完全に無保証です。

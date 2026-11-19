@@ -569,24 +569,11 @@ static void pb_midi(const fb_pic_t* p)
     }
 }
 
-/* ---- macro (MacroDisplay): the board's text mode, black with grey type; a line every 12 px */
-#define PB_CELL_ON '\x01'
-#define PB_CELL_OFF '\x02'
-
-static void pb_console(int32_t x, int32_t row, const char* s, uint32_t a)
-{
-    const int32_t y = row * 12;
-    for (; *s; s++, x += 8) {
-        if (*s == PB_CELL_ON) {
-            pb_fill(x + 1, y + 3, 6, 6, pb_ink, a);
-        } else if (*s == PB_CELL_OFF) {
-            pb_fill(x + 3, y + 5, 2, 2, pb_ink, a);
-        } else if (*s != ' ') {
-            const char c[2] = { *s, 0 };
-            pb_text(x, y - 1, &FONT_S, c, pb_ink, a);
-        }
-    }
-}
+/* ---- macro (MacroDisplay), Kabelmaier's console at its tidiest, grey on black: the four encoders side by side,
+   each a tower of its steps from step 1 at the bottom; a line between written steps (the fade), a notch cut into a
+   step where a choice switches (no fade into it), the cursor framed,
+   the free slot dashed, and a pointer where the encoder stands between its steps */
+#define PB_MAC_STEPS 4
 
 static void pb_cat(char* b, const char* s)
 {
@@ -606,69 +593,53 @@ static void pb_cat_int(char* b, int32_t v)
 
 static void pb_macro(const fb_pic_t* p)
 {
-    static const char* const NAMES = "ABCD";
-    const int32_t enc = pb_v(p, 0) & 3, step = pb_v(p, 1) > 7 ? 7 : pb_v(p, 1), armed = pb_v(p, 2) & 1;
-    const int32_t t = pb_live(p, 0), blink = t / 15 % 2 == 0;
-    const int32_t torn = t % 141 < 2 ? t / 141 % 9 : -1;   /* every 4.7 s one line tears sideways for a frame */
-    char b[40];
-    int32_t i, k, count;
+    const int32_t enc = pb_v(p, 0) & 3, unsaved = pb_v(p, 2) & 1;
+    char b[8];
+    int32_t i, k;
     pb_fill(0, 0, PB_W, 12, pb_ink, 256);
-    pb_text(0, -1, &FONT_S, " MK-4 MACRO CONTROLLER FW 0.9b", pb_bot, 256);
-    b[0] = 0;
-    pb_cat(b, "RX OK  STEPS ");
+    pb_text(0, -1, &FONT_S, " MK-4 MACRO", pb_bot, 256);
+    pb_label(PB_W - 8, 6, unsaved ? "UNSAVED" : "READY", pb_bot, 256, 2);
     for (i = 0; i < 4; i++) {
-        if (i)
-            pb_cat(b, "/");
-        pb_cat_int(b, pb_v(p, 3u + (uint32_t)i));
-    }
-    pb_cat(b, armed ? "   [REC]" : "  [IDLE]");
-    pb_console(torn == 0 ? 5 : 0, 1, b, 205);
-    for (i = 0; i < 4; i++) {                               /* "A   2.4   [#]# # . . . . ." */
-        char* c;
-        count = pb_v(p, 3u + (uint32_t)i);
-        count = count > 8 ? 8 : count;
-        b[0] = NAMES[i];
-        b[1] = 0;
-        if (!count) {
-            pb_cat(b, "    --    ");
-        } else {
-            const int32_t tenths = 10 + (int32_t)((pb_u16(p, 7u + (uint32_t)i) * (uint32_t)(count - 1) * 10u + 32768u) >> 16);
-            pb_cat(b, "    ");
-            pb_cat_int(b, tenths / 10);
-            pb_cat(b, ".");
-            pb_cat_int(b, tenths % 10);
-            pb_cat(b, "   ");
-        }
-        c = b + str_len(b);
-        for (k = 0; k < 8; k++) {
-            const char mark = k < count ? PB_CELL_ON : PB_CELL_OFF;
-            if (i == enc && k == step) {
-                *c++ = '[', *c++ = mark, *c++ = ']';
+        const int32_t count = pb_v(p, 3u + (uint32_t)i) > PB_MAC_STEPS ? PB_MAC_STEPS : pb_v(p, 3u + (uint32_t)i);
+        const int32_t cx = 30 + i * 60, x = cx - 14, sel = i == enc, cuts = pb_v(p, 11u + (uint32_t)i);
+        const uint32_t a = sel ? 256u : 150u;
+        int32_t step = pb_v(p, 1);
+        step = step > count ? count : step;
+        step = step >= PB_MAC_STEPS ? PB_MAC_STEPS - 1 : step;
+        for (k = 0; k < PB_MAC_STEPS; k++) {               /* step k: a 9 px cell, 13 px apart */
+            const int32_t y = 62 - k * 13;
+            if (k < count) {
+                pb_fill(x, y, 28, 9, pb_ink, a);
+                if (cuts >> k & 1)
+                    pb_fill(cx - 3, y, 6, 3, C_BLACK, 256);
+                if (k + 1 < count && !(cuts >> (k + 1) & 1))
+                    pb_fill(cx - 1, y - 4, 2, 4, pb_ink, a);
+            } else if (sel && k == step) {
+                pb_hdash(x, x + 28, y, pb_ink, a);
+                pb_hdash(x, x + 28, y + 8, pb_ink, a);
+                pb_vdash(x, y, y + 9, pb_ink, a);
+                pb_vdash(x + 27, y, y + 9, pb_ink, a);
             } else {
-                if (c[-1] != ']')
-                    *c++ = ' ';
-                *c++ = mark;
+                pb_fill(cx - 1, y + 4, 2, 2, pb_ink, a);
             }
+            if (sel && k == step)
+                pb_frame(x - 3, y - 2, 34, 13, pb_ink, 256, 0);
         }
-        *c = 0;
-        pb_console(torn == 2 + i ? 5 : 0, 2 + i, b, i == enc ? 256u : 205u);
+        if (count) {                                        /* the pointer: 1.0 at step 1, count.0 at the top */
+            const int32_t y = 66 - (int32_t)((pb_u16(p, 7u + (uint32_t)i) * (uint32_t)(count - 1) * 13u + 32768u) >> 16);
+            pb_fill(x - 9, y - 2, 1, 5, pb_ink, a);
+            pb_fill(x - 8, y - 1, 1, 3, pb_ink, a);
+            pb_fill(x - 7, y, 1, 1, pb_ink, a);
+        }
+        b[0] = (char)('A' + i);
+        b[1] = 0;
+        if (sel) {
+            pb_fill(cx - 8, 73, 16, 11, pb_ink, 256);
+            pb_label(cx, 79, b, C_BLACK, 256, 1);
+        } else {
+            pb_label(cx, 79, b, pb_ink, a, 1);
+        }
     }
-    count = pb_v(p, 3u + (uint32_t)enc);
-    b[0] = 0;
-    pb_cat(b, "> ENC ");
-    b[6] = NAMES[enc];
-    b[7] = 0;
-    if (step < count) {
-        pb_cat(b, "  STEP ");
-        pb_cat_int(b, step + 1);
-        pb_cat(b, "/");
-        pb_cat_int(b, count);
-    } else {
-        pb_cat(b, "  NEW STEP");
-    }
-    if (armed && blink)
-        pb_cat(b, "  ARMED");
-    pb_console(torn == 6 ? 5 : 0, 6, b, 256);
 }
 
 /* ---- audio in (AudioInDisplay): a jack socket and the level going in, or word that the input is not allowed */

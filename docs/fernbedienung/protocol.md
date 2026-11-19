@@ -22,10 +22,10 @@ complement: 1 is one detent up, 127 one down, 2 / 126 two detents, and so on.
 |---|---|---|---|
 | 1 | KNOB1-4 | CC 20-23, relative | the 4 values of the page |
 | 2 | SELECT | CC 24, relative | the module's pages (tabs) |
-| 3 | ALGORITHM | CC 25, relative | exactly the programmer's PREV / NEXT keys: the cable on Route, the step in the sequencer. Elsewhere nothing |
+| 3 | ALGORITHM | CC 25, relative | exactly the programmer's PREV / NEXT keys: the cable on Route, the step in the sequencer, BUBEN's sound. Elsewhere nothing |
 | 4 | PRESETS | CC 26, relative | opens the patch list and browses it (LIST); nothing loads yet. While the list is open, SELECT steps the library's category filter (all, bass, keys, lead, pad, strings, pluck, FX, perc) |
-| 5 | REC | CC 27, 127 pressed, 0 released | while a NOTICE with an action shows: that action. Else the page's action (its label is in SCREEN): load the patch while the list is open, step on/off, arm, freeze, panic, cable on/off |
-| 6 | SAVE | CC 28, 127 / 0 | the page's second action (label in SCREEN): macro write, cable flip |
+| 5 | REC | CC 27, 127 pressed, 0 released | while a NOTICE with an action shows: that action. Else the page's action (its label is in SCREEN): load the patch while the list is open, step on/off, macro store, freeze, MITSCHNITT's recording (REC / STOP, GRAB in its BACK modes), panic, cable on/off |
+| 6 | SAVE | CC 28, 127 / 0 | the page's second action (label in SCREEN): macro step, cable flip |
 | 7 | category button tapped | CC 40 + category, 127 | not on that category: go to it (the module used there last). Already on it: switch Edit / Route |
 | 8 | category button held + SELECT | CC 50 + category, relative | step through the modules of that category |
 | 9 | PLAY | CC 29, 127 pressed, 0 released | the app starts or stops its own transport. When it follows an external clock it leaves the transport to that master and shows a NOTICE ("Clock: external"). The PLAY LED follows SCREEN's running flag |
@@ -39,8 +39,8 @@ Categories and the module kinds the app puts in each:
 | # | Category | Button | Kinds |
 |---|---|---|---|
 | 0 | HOME | HOME | macro; with no macro in the bay, the output (amp), so HOME always shows something |
-| 1 | SCL | SCL | oscillator, wavetable, FM, string, grain, VÝPIS, 曲げ MAGE, SCHLIERE |
-| 2 | FX | FX | filter, delay, reverb, distortion, chorus, EQ, compressor, COMBINÉ |
+| 1 | SCL | SCL | oscillator, wavetable, FM, string, grain, VÝPIS, 曲げ MAGE, SCHLIERE, BUBEN, PRISE, MITSCHNITT, EMPFANG |
+| 2 | FX | FX | filter, delay, reverb, distortion, chorus, EQ, compressor, COMBINÉ, こだま KODAMA |
 | 3 | LFO | LFO | LFO |
 | 4 | ENV | ENV | envelope |
 | 5 | SEQ | SEQ | sequencer |
@@ -81,9 +81,9 @@ ACK and then sends the full state: SCREEN, CONTROLS, PICTURE.
 | cmd | Name | Body |
 |---|---|---|
 | 02 | ACK | protocol version, theme (1 light, 2 dark: the app's own) |
-| 10 | SCREEN | category, mode (0 Edit, 1 Route), kind (below), page, page count, flags (bit 0: macro step armed, bit 1: transport running), title str, page count × page title str, REC label str, SAVE label str (empty: the button does nothing here) |
+| 10 | SCREEN | category, mode (0 Edit, 1 Route), kind (below), page, page count, flags (bit 0: the macro has changes not yet snapshotted, set only while the macro shows; bit 1: transport running), title str, page count × page title str, REC label str, SAVE label str (empty: the button does nothing here) |
 | 11 | CONTROLS | 4 × control: flags (bit 0 present, bit 1 live value follows), position v14, live v14 if bit 1, title str, readout str |
-| 20 | PICTURE | kind, n, n × v14, array length v14, array bytes (7-bit). Layout per kind: [pictures-a.md](pictures-a.md), [pictures-b.md](pictures-b.md), [pictures-c.md](pictures-c.md) |
+| 20 | PICTURE | kind, n, n × v14, array length v14, array bytes (7-bit). Layout per kind: [pictures-a.md](pictures-a.md), [pictures-b.md](pictures-b.md), [pictures-c.md](pictures-c.md), [pictures-d.md](pictures-d.md) |
 | 21 | LIVE | kind, n, n × v14: what moves (playhead, peaks, modulated values), up to 30 times a second |
 | 12 | NOTICE | text str (empty: none; at most 18 characters, e.g. "Sound on iPad", "Clock: external"), action str (what REC does about it, at most 10, e.g. "use FM-1"; empty: nothing). Shown in the footer, amber, until replaced |
 | 13 | BAY | categories v14: bit n set, category n (the table above) has a module in the bay. Sent with the full state and whenever that changes. The FM-1 turns off the backlight of the buttons of empty categories; until BAY comes, every category counts as full |
@@ -109,6 +109,11 @@ Module kinds:
 | 7 | LFO | 15 | grain | 23 | COMBINÉ |
 | | | | | 24 | 曲げ MAGE |
 | | | | | 25 | SCHLIERE (smear) |
+| | | | | 26 | BUBEN (drum) |
+| | | | | 27 | PRISE |
+| | | | | 28 | こだま KODAMA |
+| | | | | 29 | MITSCHNITT (sampler) |
+| | | | | 30 | EMPFANG (radio) |
 
 ## The FM-1's own settings (EDIT)
 

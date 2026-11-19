@@ -2,8 +2,8 @@
  * Copyright (C) 2026 Daniel Pangerl */
 /* Fernbedienung's pictures, part C: the hacker crews' modules (docs/fernbedienung/pictures-c.md; unity build, included
  * once by app.c after part A, whose drawing kit it uses). Each crew draws in its own look, not the display's theme:
- * VÝPIS (ZKRAT) a memory monitor, COMBINÉ (LIGNE) a stencilled poster, MAGE (KAIRO) a neon lens, SCHLIERE (RASTER)
- * a technical drawing. */
+ * VÝPIS (ZKRAT) a memory monitor, COMBINÉ (LIGNE) a stencilled poster, 曲げ MAGE (KAIRO) a neon lens, SCHLIERE (RASTER)
+ * a technical drawing. The crews' screens (tiles, header) are here too, for part D's modules as well. */
 #ifndef FB_PICS_C_H
 #define FB_PICS_C_H
 
@@ -63,6 +63,51 @@ static int32_t pc_glow_text(int32_t x, int32_t y, const felucca_font_t* f, const
     for (i = 0; i < 8; i++)
         pa_text(x + D[i][0], y + D[i][1], f, s, g, i < 4 ? 90 : 40);
     return pa_text(x, y, f, s, c, 256);
+}
+
+/* ---- KAIRO's kanji and kana (fb_kanji.h, 1-bit): s in UTF-8, each glyph size x size px drawn k times as large;
+   a character not in the set is skipped. Returns the end x */
+static uint32_t pc_utf8(const char** s)
+{
+    const uint8_t* p = (const uint8_t*)*s;
+    uint32_t cp = *p++;
+    if (cp >= 0xE0u && p[0] && p[1]) {
+        cp = (cp & 15u) << 12 | (uint32_t)(p[0] & 63u) << 6 | (p[1] & 63u);
+        p += 2;
+    } else if (cp >= 0xC0u && p[0]) {
+        cp = (cp & 31u) << 6 | (p[0] & 63u);
+        p++;
+    }
+    *s = (const char*)p;
+    return cp;
+}
+
+static int32_t pc_kanji(int32_t x, int32_t y, uint32_t size, int32_t k, const char* s, uint16_t c, int32_t a)
+{
+    while (*s) {
+        const uint32_t cp = pc_utf8(&s);
+        uint32_t i, r, b;
+        for (i = 0; i < FB_KANJI_N && !(FB_KANJI[i].cp == cp && FB_KANJI[i].size == size); i++)
+            ;
+        if (i == FB_KANJI_N)
+            continue;
+        for (r = 0; r < 16u; r++)
+            for (b = 0; b < size; b++)
+                if (FB_KANJI[i].rows[r] >> (15u - b) & 1u)
+                    pa_rect(x + (int32_t)b * k, y + (int32_t)r * k, k, k, c, a);
+        x += (int32_t)size * k;
+    }
+    return x;
+}
+
+/* the same with a soft halo of colour g round it (KAIRO's neon) */
+static int32_t pc_kanji_glow(int32_t x, int32_t y, uint32_t size, int32_t k, const char* s, uint16_t c, uint16_t g)
+{
+    static const int8_t D[8][2] = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 }, { -2, 0 }, { 2, 0 }, { 0, -2 }, { 0, 2 } };
+    int32_t i;
+    for (i = 0; i < 8; i++)
+        pc_kanji(x + D[i][0], y + D[i][1], size, k, s, g, i < 4 ? 90 : 40);
+    return pc_kanji(x, y, size, k, s, c, 256);
 }
 
 /* a hash of n, 0..65535 (spatter, paper grain) */
@@ -243,7 +288,7 @@ static void pc_combine(const fb_pic_t* p)
 
 /* ==== MAGE (KAIRO): v0 shape (0 saw, 1 square, 2 pulse, 3 reso), v1 bend, v2 level; live: bend, level. KAIRO's
    lens: in it the note's cycle as it sounds, in pink tube over the plain cosine it was bent from, in cyan; sixty-four
-   ticks round its rim. Left the name and the bent phase itself, right the shape and how far it is bent */
+   ticks round its rim. Left the name, 曲げ, down the column as Steckfeld writes it; right the bent phase itself, 位相 */
 #define PC_KA_PINK RGB(255, 69, 163)
 #define PC_KA_CYAN RGB(77, 240, 255)
 #define PC_KA_TUBE RGB(255, 217, 242)
@@ -307,7 +352,9 @@ static void pc_mage(const fb_pic_t* p)
     pa_glow(pa_ya, x0, x1 + 1);
     pa_trace(pa_ya, x0, x1 + 1, PC_KA_TUBE, 256, 12, 0);
 
-    pc_glow_text(40 - text_w(&FONT_M, "MAGE") / 2, 32, &FONT_M, "MAGE", PC_KA_TUBE, PC_KA_PINK);
+    pc_kanji_glow(24, 2, 16, 2, "曲", PC_KA_TUBE, PC_KA_PINK);   /* the name down the left, as Steckfeld writes it */
+    pc_kanji_glow(24, 34, 16, 2, "げ", PC_KA_TUBE, PC_KA_PINK);
+    pa_text(40 - text_w(&FONT_S, "MAGE") / 2, 67, &FONT_S, "MAGE", PC_KA_PINK, 256);
     pc_frame(182, 24, 36, 36, PC_KA_CYAN, 77);   /* the bent phase against the straight (the values: the tiles) */
     for (x = 0; x < PA_W; x++)
         pa_yb[x] = PA_NONE;
@@ -316,7 +363,7 @@ static void pc_mage(const fb_pic_t* p)
         pa_yb[x] = (int16_t)(58 * 16 - (int32_t)(q * 34u * 16u >> 16));
     }
     pa_trace(pa_yb, 183, 217, PC_KA_CYAN, 256, 8, 0);
-    pa_text(200 - text_w(&FONT_T, "PHASE") / 2, 64, &FONT_T, "PHASE", PC_KA_CYAN, 170);
+    pc_kanji(188, 66, 12, 1, "位相", PC_KA_CYAN, 200);
     cv_blit(FB_PIC_X, FB_PIC_Y);
 }
 
@@ -417,7 +464,13 @@ static uint32_t fb_crew;                    /* 0 none; 1 ZKRAT, 2 LIGNE, 3 KAIRO
 
 static uint32_t pc_crew_of(uint32_t kind)
 {
-    return kind >= FB_K_DUMP && kind <= FB_K_SMEAR ? kind - FB_K_DUMP + 1u : 0u;
+    switch (kind) {
+    case FB_K_DUMP: case FB_K_DRUM: return 1u;
+    case FB_K_COMBINE: case FB_K_PRISE: return 2u;
+    case FB_K_MAGE: case FB_K_KODAMA: return 3u;
+    case FB_K_SMEAR: case FB_K_SAMPLER: case FB_K_RADIO: return 4u;
+    default: return 0u;
+    }
 }
 
 static const char* pc_crew_name(void)
@@ -515,14 +568,87 @@ static void pc_tile_raster(const fb_ctl_t* c)
         pa_vdash(8 + ((int32_t)c->live * 102 >> 14), 38, 50, PC_RA_GOLD, 256);
 }
 
-/* a tile on the canvas fb_tile_draw set up (the crew's ground) */
+/* RASTER, MITSCHNITT's sheet a circuit diagram: the encoder a potentiometer R1..R4, the value entered over its
+   resistor and its wiper set on it (gold dashed: where a cable has it) */
+static void pc_tile_pot(uint32_t i, const fb_ctl_t* c)
+{
+    const int32_t x = 9 + ((int32_t)c->pos * 100 >> 14);
+    const felucca_font_t* f = pc_fit(c->readout, 104);
+    char r[3];
+    r[0] = 'R';
+    r[1] = (char)('1' + (i & 3u));
+    r[2] = 0;
+    pc_frame(1, 1, (int32_t)FB_TILE_W - 2, (int32_t)FB_TILE_H - 2, 0xFFFFu, PC_RA_LINE);
+    pa_rect(2, 18, (int32_t)FB_TILE_W - 4, 1, 0xFFFFu, PC_RA_FAINT);
+    pa_text(pa_text(6, 3, &FONT_T, r, PC_RA_GOLD, 256) + 6, 3, &FONT_T, c->title, 0xFFFFu, PC_RA_FAINT);
+    pa_text(8, f == &FONT_M ? 19 : 22, f, c->readout, 0xFFFFu, 240);
+    pc_frame(8, 43, 103, 6, 0xFFFFu, PC_RA_LINE);   /* the resistor, its wiper on it */
+    pa_rect(x, 38, 1, 5, 0xFFFFu, 240);
+    pc_ra_arrow(x * 16 + 8, 43 * 16, 0, 1, 240);
+    if (c->flags & FB_CTL_LIVE)
+        pa_vdash(9 + ((int32_t)c->live * 100 >> 14), 36, 50, PC_RA_GOLD, 256);
+}
+
+/* RASTER, EMPFANG's sheet an antenna's polar diagram: the value entered beside a polar grid, rings and a spoke every
+   30 degrees, the value a lobe pointing where the knob is turned (the sweep from lower left over the top to lower
+   right, as Steckfeld's rings run); gold dashed: where a cable has it */
+#define PC_RA_PX 94                         /* the polar grid's centre and radius */
+#define PC_RA_PY 31
+#define PC_RA_PR 17
+
+static uint32_t pc_ra_angle(uint32_t v) { return (uint32_t)((120 * 16384 + (int32_t)v * 300) / 16384 * 65536 / 360); }
+
+static void pc_tile_polar(const fb_ctl_t* c)
+{
+    const uint32_t ph = pc_ra_angle(c->pos);
+    const felucca_font_t* f = pc_fit(c->readout, 72);
+    const int32_t cx = PC_RA_PX * 16 + 8, cy = PC_RA_PY * 16 + 8;
+    char v[sizeof c->readout];
+    int32_t k, px[4], py[4];
+    str_cpy(v, c->readout, sizeof v);       /* cut where the grid starts */
+    for (k = (int32_t)str_len(v); k > 0 && text_w(f, v) > 72; k--)
+        v[k - 1] = 0;
+    pc_frame(1, 1, (int32_t)FB_TILE_W - 2, (int32_t)FB_TILE_H - 2, 0xFFFFu, PC_RA_LINE);
+    pa_rect(2, 18, 70, 1, 0xFFFFu, PC_RA_FAINT);
+    pa_text(6, 3, &FONT_T, c->title, 0xFFFFu, PC_RA_FAINT);
+    pa_text(8, f == &FONT_M ? 22 : 25, f, v, 0xFFFFu, 240);
+    pc_ring(PC_RA_PX, PC_RA_PY, PC_RA_PR, 0xFFFFu, PC_RA_LINE);
+    pc_ring(PC_RA_PX, PC_RA_PY, PC_RA_PR * 2 / 3, 0xFFFFu, PC_RA_FAINT);
+    pc_ring(PC_RA_PX, PC_RA_PY, PC_RA_PR / 3, 0xFFFFu, PC_RA_FAINT);
+    for (k = 0; k < 12; k++) {
+        const uint32_t a = (uint32_t)k * 65536u / 12u;
+        pa_line(cx, cy, cx + ((PC_RA_PR * 16 * pc_cos(a)) >> 15), cy + ((PC_RA_PR * 16 * pc_sin(a)) >> 15), 0xFFFFu, PC_RA_FAINT, 0);
+    }
+    px[0] = cx;                             /* the lobe */
+    py[0] = cy;
+    px[1] = cx + ((7 * 16 * pc_cos(ph - 4096u)) >> 15);
+    py[1] = cy + ((7 * 16 * pc_sin(ph - 4096u)) >> 15);
+    px[2] = cx + ((PC_RA_PR * 16 * pc_cos(ph)) >> 15);
+    py[2] = cy + ((PC_RA_PR * 16 * pc_sin(ph)) >> 15);
+    px[3] = cx + ((7 * 16 * pc_cos(ph + 4096u)) >> 15);
+    py[3] = cy + ((7 * 16 * pc_sin(ph + 4096u)) >> 15);
+    pc_poly(px, py, 4, PC_RA_GOLD, 200);
+    if (c->flags & FB_CTL_LIVE) {
+        const uint32_t l = pc_ra_angle(c->live);
+        pa_line(cx, cy, cx + ((PC_RA_PR * 16 * pc_cos(l)) >> 15), cy + ((PC_RA_PR * 16 * pc_sin(l)) >> 15), PC_RA_GOLD, 256, 1);
+    }
+}
+
+/* a tile on the canvas fb_tile_draw set up (the crew's ground); RASTER's sheet differs per module */
 static void pc_tile(uint32_t i, const fb_ctl_t* c)
 {
     switch (fb_crew) {
     case 1: pc_tile_zkrat(i, c); break;
     case 2: pc_tile_ligne(c); break;
     case 3: pc_tile_kairo(i, c); break;
-    default: pc_tile_raster(c); break;
+    default:
+        if (fb.scr.kind == FB_K_SAMPLER)
+            pc_tile_pot(i, c);
+        else if (fb.scr.kind == FB_K_RADIO)
+            pc_tile_polar(c);
+        else
+            pc_tile_raster(c);
+        break;
     }
 }
 

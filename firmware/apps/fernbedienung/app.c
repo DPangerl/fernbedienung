@@ -26,9 +26,11 @@
 #include "bw_keys.h"
 #include "fb_proto.h"
 #include "fb_link.h"
+#include "fb_kanji.h"
 #include "fb_pics_a.h"
 #include "fb_pics_b.h"
 #include "fb_pics_c.h"
+#include "fb_pics_d.h"
 #include "fb_screen.h"
 
 #define FB_HELLO_DELAY_MS 300u              /* after USB comes up: the host opens its MIDI port first */
@@ -334,7 +336,7 @@ static void fb_want_tiles(uint32_t view, fb_ctl_t* t)
     fb_local_tile(&t[3], "USB AUDIO", fb_audio_text(), 0, 0, 0);
 }
 
-static void fb_want_head(uint32_t view, uint32_t ms, fb_head_t* h)
+static void fb_want_head(uint32_t view, fb_head_t* h)
 {
     memset(h, 0, sizeof *h);
     if (view == FB_V_SETUP) {
@@ -360,8 +362,7 @@ static void fb_want_head(uint32_t view, uint32_t ms, fb_head_t* h)
     h->cur = fb.scr.page;
     if (fb.scr.page < fb.scr.pages)
         str_cpy(h->page, fb.scr.page_title[fb.scr.page], sizeof h->page);
-    if (fb.scr.flags & FB_SCR_ARMED)
-        h->armed = (uint8_t)((ms / FB_ARMED_MS) & 1u ? 2u : 1u);
+    h->unsaved = (uint8_t)(fb.scr.flags & FB_SCR_UNSAVED);
 }
 
 static void fb_want_foot(uint32_t view, fb_foot_t* f)
@@ -450,7 +451,7 @@ static void draw(uint32_t ms)
         dirty = FB_D_ALL;
         fb_gaps();
     }
-    fb_want_head(view, ms, &h);
+    fb_want_head(view, &h);
     if (dirty & FB_D_HEAD || memcmp(&h, &shown.head, sizeof h)) {
         fb_head_draw(&h);
         shown.head = h;
@@ -462,10 +463,11 @@ static void draw(uint32_t ms)
         fb_overlay_scroll(&fb.list[1], ms, full);
     } else {
         if (view == FB_V_MAIN) {
+            const int moves = fb.scr.mode == 0u &&
+                              (fb_pics_a_moves(&fb.pic) || fb_pics_c_moves(&fb.pic) || fb_pics_d_moves(&fb.pic));
             key = fb.scr.mode;
             if (dirty & FB_D_PIC || key != shown.pic_key ||
-                ((fb.pic.serial != shown.pic_serial || (fb.scr.mode == 0u && (fb_pics_a_moves(&fb.pic) || fb_pics_c_moves(&fb.pic)))) &&
-                 ms - shown.pic_ms >= FB_PIC_MS)) {
+                ((fb.pic.serial != shown.pic_serial || moves) && ms - shown.pic_ms >= FB_PIC_MS)) {
                 if (fb.scr.mode == 1u)
                     fb_route_draw(&fb.list[0]);
                 else
