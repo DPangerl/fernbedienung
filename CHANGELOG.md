@@ -5,6 +5,10 @@ All notable changes to Fernbedienung. The format follows
 
 ## [Unreleased]
 
+## [1.2] - 2026-11-23
+
+Goes with Steckfeld SF1 1.7.0 and newer.
+
 ### Added
 
 - The crews' later modules get their own screens: BUBEN (the eight pads lit as they ring, the focused one bracketed),
@@ -61,6 +65,7 @@ Goes with Steckfeld SF1 1.4.0. Tested on an FM-1 with an iPad.
 - System settings (hold HOME, press EDIT): theme Sync / Light / Dark.
 - The update loader shows Elektro Kabelmaier's update screen while it writes.
 
-[Unreleased]: https://github.com/DPangerl/fernbedienung/compare/v1.1...HEAD
+[Unreleased]: https://github.com/DPangerl/fernbedienung/compare/v1.2...HEAD
+[1.2]: https://github.com/DPangerl/fernbedienung/compare/v1.1...v1.2
 [1.1]: https://github.com/DPangerl/fernbedienung/compare/v1.0...v1.1
 [1.0]: https://github.com/DPangerl/fernbedienung/releases/tag/v1.0
